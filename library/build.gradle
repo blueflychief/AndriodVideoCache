@@ -38,7 +38,7 @@ android {
 //}
 
 dependencies {
-    compile 'org.slf4j:slf4j-android:1.7.21'
+
 }
 
 //publish {

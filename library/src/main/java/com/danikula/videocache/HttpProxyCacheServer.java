@@ -13,9 +13,6 @@ import com.danikula.videocache.headers.HeaderInjector;
 import com.danikula.videocache.sourcestorage.SourceInfoStorage;
 import com.danikula.videocache.sourcestorage.SourceInfoStorageFactory;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -53,7 +50,6 @@ import static com.danikula.videocache.Preconditions.checkNotNull;
  */
 public class HttpProxyCacheServer {
 
-    private static final Logger LOG = LoggerFactory.getLogger("HttpProxyCacheServer");
     private static final String PROXY_HOST = "127.0.0.1";
 
     private final Object clientsLock = new Object();
@@ -81,7 +77,7 @@ public class HttpProxyCacheServer {
             this.waitConnectionThread.start();
             startSignal.await(); // freeze thread, wait for server starts
             this.pinger = new Pinger(PROXY_HOST, port);
-            LOG.info("Proxy cache server started. Is it alive? " + isAlive());
+            KLog.i("Proxy cache server started. Is it alive? " + isAlive());
         } catch (IOException | InterruptedException e) {
             socketProcessor.shutdown();
             throw new IllegalStateException("Error starting local proxy server", e);
@@ -128,7 +124,7 @@ public class HttpProxyCacheServer {
             try {
                 getClients(url).registerCacheListener(cacheListener);
             } catch (ProxyCacheException e) {
-                LOG.warn("Error registering cache listener", e);
+                KLog.i("Error registering cache listener", e);
             }
         }
     }
@@ -139,7 +135,7 @@ public class HttpProxyCacheServer {
             try {
                 getClients(url).unregisterCacheListener(cacheListener);
             } catch (ProxyCacheException e) {
-                LOG.warn("Error registering cache listener", e);
+                KLog.i("Error registering cache listener", e);
             }
         }
     }
@@ -165,7 +161,7 @@ public class HttpProxyCacheServer {
     }
 
     public void shutdown() {
-        LOG.info("Shutdown proxy server");
+        KLog.i("Shutdown proxy server");
 
         shutdownClients();
 
@@ -199,7 +195,7 @@ public class HttpProxyCacheServer {
         try {
             config.diskUsage.touch(cacheFile);
         } catch (IOException e) {
-            LOG.error("Error touching file " + cacheFile, e);
+            KLog.i("Error touching file " + cacheFile, e);
         }
     }
 
@@ -216,7 +212,7 @@ public class HttpProxyCacheServer {
         try {
             while (!Thread.currentThread().isInterrupted()) {
                 Socket socket = serverSocket.accept();
-                LOG.debug("Accept new socket " + socket);
+                KLog.i("Accept new socket " + socket);
                 socketProcessor.submit(new SocketProcessorRunnable(socket));
             }
         } catch (IOException e) {
@@ -227,7 +223,7 @@ public class HttpProxyCacheServer {
     private void processSocket(Socket socket) {
         try {
             GetRequest request = GetRequest.read(socket.getInputStream());
-            LOG.debug("Request to cache proxy:" + request);
+            KLog.i("Request to cache proxy:" + request);
             String url = ProxyCacheUtils.decode(request.uri);
             if (pinger.isPingRequest(url)) {
                 pinger.responseToPing(socket);
@@ -238,12 +234,12 @@ public class HttpProxyCacheServer {
         } catch (SocketException e) {
             // There is no way to determine that client closed connection http://stackoverflow.com/a/10241044/999458
             // So just to prevent log flooding don't log stacktrace
-            LOG.debug("Closing socket… Socket is closed by client.");
+            KLog.i("Closing socket… Socket is closed by client.");
         } catch (ProxyCacheException | IOException e) {
             onError(new ProxyCacheException("Error processing request", e));
         } finally {
             releaseSocket(socket);
-            LOG.debug("Opened connections: " + getClientsCount());
+            KLog.i("Opened connections: " + getClientsCount());
         }
     }
 
@@ -282,7 +278,7 @@ public class HttpProxyCacheServer {
         } catch (SocketException e) {
             // There is no way to determine that client closed connection http://stackoverflow.com/a/10241044/999458
             // So just to prevent log flooding don't log stacktrace
-            LOG.debug("Releasing input stream… Socket is closed by client.");
+            KLog.i("Releasing input stream… Socket is closed by client.");
         } catch (IOException e) {
             onError(new ProxyCacheException("Error closing socket input stream", e));
         }
@@ -294,7 +290,7 @@ public class HttpProxyCacheServer {
                 socket.shutdownOutput();
             }
         } catch (IOException e) {
-            LOG.warn("Failed to close socket on proxy side: {}. It seems client have already closed connection.", e.getMessage());
+            KLog.i("Failed to close socket on proxy side: {}. It seems client have already closed connection.", e.getMessage());
         }
     }
 
@@ -309,7 +305,7 @@ public class HttpProxyCacheServer {
     }
 
     private void onError(Throwable e) {
-        LOG.error("HttpProxyCacheServer error", e);
+        KLog.i("HttpProxyCacheServer error", e);
     }
 
     private final class WaitRequestsRunnable implements Runnable {
@@ -323,7 +319,16 @@ public class HttpProxyCacheServer {
         @Override
         public void run() {
             startSignal.countDown();
-            waitForRequest();
+            try {
+                //循环等待新的链接请求
+                while (!Thread.currentThread().isInterrupted()) {
+                    Socket socket = serverSocket.accept();
+                    KLog.i("Accept new socket " + socket);
+                    socketProcessor.submit(new SocketProcessorRunnable(socket));
+                }
+            } catch (IOException e) {
+                onError(new ProxyCacheException("Error during waiting connection", e));
+            }
         }
     }
 
@@ -337,7 +342,26 @@ public class HttpProxyCacheServer {
 
         @Override
         public void run() {
-            processSocket(socket);
+            try {
+                GetRequest request = GetRequest.read(socket.getInputStream());
+                KLog.i("Request to cache proxy:" + request);
+                String url = ProxyCacheUtils.decode(request.uri);
+                if (pinger.isPingRequest(url)) {
+                    pinger.responseToPing(socket);
+                } else {
+                    HttpProxyCacheServerClients clients = getClients(url);
+                    clients.processRequest(request, socket);
+                }
+            } catch (SocketException e) {
+                // There is no way to determine that client closed connection http://stackoverflow.com/a/10241044/999458
+                // So just to prevent log flooding don't log stacktrace
+                KLog.i("Closing socket… Socket is closed by client.");
+            } catch (ProxyCacheException | IOException e) {
+                onError(new ProxyCacheException("Error processing request", e));
+            } finally {
+                releaseSocket(socket);
+                KLog.i("Opened connections: " + getClientsCount());
+            }
         }
     }
 
