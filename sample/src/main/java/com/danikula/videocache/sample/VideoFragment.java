@@ -53,6 +53,19 @@ public class VideoFragment extends Fragment implements CacheListener {
         cacheStatusImageView = view.findViewById(R.id.cacheStatusImageView);
         videoView = view.findViewById(R.id.videoView);
         progressBar = view.findViewById(R.id.progressBar);
+        view.findViewById(R.id.btStart).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                videoView.start();
+            }
+        });
+
+        view.findViewById(R.id.btStop).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                videoView.pause();
+            }
+        });
         checkCachedState();
         startVideo();
     }
