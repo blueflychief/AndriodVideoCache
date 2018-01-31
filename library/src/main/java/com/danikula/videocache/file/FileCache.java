@@ -1,6 +1,7 @@
 package com.danikula.videocache.file;
 
 import com.danikula.videocache.Cache;
+import com.danikula.videocache.KLog;
 import com.danikula.videocache.ProxyCacheException;
 
 import java.io.File;
@@ -89,7 +90,7 @@ public class FileCache implements Cache {
         if (isCompleted()) {
             return;
         }
-
+        KLog.i("=====文件下载结束，准备重命名文件和关闭文件写权限");
         close();
         String fileName = file.getName().substring(0, file.getName().length() - TEMP_POSTFIX.length());
         File completedFile = new File(file.getParentFile(), fileName);
@@ -108,7 +109,9 @@ public class FileCache implements Cache {
 
     @Override
     public synchronized boolean isCompleted() {
-        return !isTempFile(file);
+        boolean isCompleted = !isTempFile(file);
+//        KLog.i("====文件" + (isCompleted ? "已" : "未") + "缓存完毕");
+        return isCompleted;
     }
 
     /**

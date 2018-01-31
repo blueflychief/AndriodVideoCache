@@ -27,6 +27,7 @@ class GetRequest {
 
     public GetRequest(String request) {
         checkNotNull(request);
+        KLog.i("====读取到新的链接请求：\n" + request);
         long offset = findRangeOffset(request);
         this.rangeOffset = Math.max(0, offset);
         this.partial = offset >= 0;
@@ -47,6 +48,7 @@ class GetRequest {
         Matcher matcher = RANGE_HEADER_PATTERN.matcher(request);
         if (matcher.find()) {
             String rangeValue = matcher.group(1);
+            KLog.i("====检测到需要断点下载，下载位置：" + rangeValue);
             return Long.parseLong(rangeValue);
         }
         return -1;

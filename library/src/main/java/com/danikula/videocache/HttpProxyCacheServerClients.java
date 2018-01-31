@@ -39,8 +39,10 @@ final class HttpProxyCacheServerClients {
         startProcessRequest();
         try {
             clientsCount.incrementAndGet();
+            KLog.i("=====当前url需要处理的socket数量是:" + clientsCount.get());
             proxyCache.processRequest(request, socket);
         } finally {
+            //正常和异常情况下确保socket能关闭
             finishProcessRequest();
         }
     }
@@ -50,9 +52,13 @@ final class HttpProxyCacheServerClients {
     }
 
     private synchronized void finishProcessRequest() {
+        KLog.i("======准备关闭请求");
         if (clientsCount.decrementAndGet() <= 0) {
+            KLog.i("======请求客户端数量为0，关闭请求");
             proxyCache.shutdown();
             proxyCache = null;
+        } else {
+            KLog.i("======请求客户端数量不为0，不关闭请求");
         }
     }
 
@@ -79,6 +85,7 @@ final class HttpProxyCacheServerClients {
     }
 
     private HttpProxyCache newHttpProxyCache() throws ProxyCacheException {
+        KLog.i("======newHttpProxyCache");
         HttpUrlSource source = new HttpUrlSource(url, config.sourceInfoStorage, config.headerInjector);
         FileCache cache = new FileCache(config.generateCacheFile(url), config.diskUsage);
         HttpProxyCache httpProxyCache = new HttpProxyCache(source, cache);

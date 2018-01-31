@@ -31,6 +31,7 @@ class Pinger {
 
     private static final String PING_REQUEST = "ping";
     private static final String PING_RESPONSE = "ping ok";
+    private static final String HTTP_RESPONSE = "HTTP/1.1 200 OK\n\n";
 
     private final ExecutorService pingExecutor = Executors.newSingleThreadExecutor();
     private final String host;
@@ -44,7 +45,7 @@ class Pinger {
     boolean ping(int maxAttempts, int startTimeout) {
         checkArgument(maxAttempts >= 1);
         checkArgument(startTimeout > 0);
-
+        KLog.i("====开始Ping测试，查看代理服务是否存活，maxAttempts：" + maxAttempts + " ,startTimeout:" + startTimeout);
         int timeout = startTimeout;
         int attempts = 0;
         while (attempts < maxAttempts) {
@@ -84,14 +85,17 @@ class Pinger {
     }
 
     void responseToPing(Socket socket) throws IOException {
+        //ping请求的回应
         OutputStream out = socket.getOutputStream();
-        out.write("HTTP/1.1 200 OK\n\n".getBytes());
+        out.write(HTTP_RESPONSE.getBytes());
         out.write(PING_RESPONSE.getBytes());
+        KLog.i("====返回ping响应");
     }
 
     private boolean pingServer() throws ProxyCacheException {
         String pingUrl = getPingUrl();
         HttpUrlSource source = new HttpUrlSource(pingUrl);
+        KLog.i("====pingServer==HttpUrlSource:\n" + source.toString());
         try {
             byte[] expectedResponse = PING_RESPONSE.getBytes();
             source.open(0);

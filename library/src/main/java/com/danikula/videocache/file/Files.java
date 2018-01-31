@@ -46,6 +46,7 @@ class Files {
     static void setLastModifiedNow(File file) throws IOException {
         if (file.exists()) {
             long now = System.currentTimeMillis();
+            KLog.i("====修改文件的最后修改时间为当前时间:" + now);
             boolean modified = file.setLastModified(now); // on some devices (e.g. Nexus 5) doesn't work
             if (!modified) {
                 modify(file);

@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.danikula.videocache.KLog;
 import com.danikula.videocache.SourceInfo;
 
 import static com.danikula.videocache.Preconditions.checkAllNotNull;
@@ -54,7 +55,12 @@ class DatabaseSourceInfoStorage extends SQLiteOpenHelper implements SourceInfoSt
         Cursor cursor = null;
         try {
             cursor = getReadableDatabase().query(TABLE, ALL_COLUMNS, COLUMN_URL + "=?", new String[]{url}, null, null, null);
-            return cursor == null || !cursor.moveToFirst() ? null : convert(cursor);
+            if (cursor == null || !cursor.moveToFirst()) {
+                return null;
+            }
+            SourceInfo sourceInfo = convert(cursor);
+            KLog.i("======获取下载记录：" + sourceInfo);
+            return sourceInfo;
         } finally {
             if (cursor != null) {
                 cursor.close();
@@ -68,6 +74,7 @@ class DatabaseSourceInfoStorage extends SQLiteOpenHelper implements SourceInfoSt
         SourceInfo sourceInfoFromDb = get(url);
         boolean exist = sourceInfoFromDb != null;
         ContentValues contentValues = convert(sourceInfo);
+        KLog.i("======更新下载记录：" + sourceInfo);
         if (exist) {
             getWritableDatabase().update(TABLE, contentValues, COLUMN_URL + "=?", new String[]{url});
         } else {

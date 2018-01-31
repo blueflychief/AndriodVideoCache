@@ -36,14 +36,18 @@ class HttpProxyCache extends ProxyCache {
     }
 
     public void processRequest(GetRequest request, Socket socket) throws IOException, ProxyCacheException {
+        KLog.i("======processRequest");
         OutputStream out = new BufferedOutputStream(socket.getOutputStream());
         String responseHeaders = newResponseHeaders(request);
+        KLog.i("=====创建文件请求头：\n" + responseHeaders);
         out.write(responseHeaders.getBytes("UTF-8"));
 
         long offset = request.rangeOffset;
         if (isUseCache(request)) {
+            KLog.i("======直接返回流给播放器offset:" + offset);
             responseWithCache(out, offset);
         } else {
+            KLog.i("======不直接返回流给播放器offset:" + offset);
             responseWithoutCache(out, offset);
         }
     }
@@ -53,15 +57,18 @@ class HttpProxyCache extends ProxyCache {
         boolean sourceLengthKnown = sourceLength > 0;
         long cacheAvailable = cache.available();
         // do not use cache for partial requests which too far from available cache. It seems user seek video.
+        //文件长度未知，或者全部获取，或者请求的位置超过已缓存大小20%的时候，使用缓存，即：将下载流直接返回给播放器
         return !sourceLengthKnown || !request.partial || request.rangeOffset <= cacheAvailable + sourceLength * NO_CACHE_BARRIER;
     }
 
     private String newResponseHeaders(GetRequest request) throws IOException, ProxyCacheException {
+        KLog.i("======newResponseHeaders");
         String mime = source.getMime();
         boolean mimeKnown = !TextUtils.isEmpty(mime);
         long length = cache.isCompleted() ? cache.available() : source.length();
         boolean lengthKnown = length >= 0;
         long contentLength = request.partial ? length - request.rangeOffset : length;
+        KLog.i("=======需要获取的文件长度是：" + (request.partial ? ("部分获取:" + (length - request.rangeOffset)) : ("全部获取:" + length)));
         boolean addRange = lengthKnown && request.partial;
         return new StringBuilder()
                 .append(request.partial ? "HTTP/1.1 206 PARTIAL CONTENT\n" : "HTTP/1.1 200 OK\n")
@@ -76,10 +83,13 @@ class HttpProxyCache extends ProxyCache {
     private void responseWithCache(OutputStream out, long offset) throws ProxyCacheException, IOException {
         byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
         int readBytes;
+        //循环读取大小8k，每次返回8k给播放器
         while ((readBytes = read(buffer, offset, buffer.length)) != -1) {
             out.write(buffer, 0, readBytes);
             offset += readBytes;
+            KLog.i("=======返给播发器大小：" + readBytes);
         }
+        KLog.i("======循环读取结束，进行flush");
         out.flush();
     }
 
