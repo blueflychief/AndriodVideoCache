@@ -19,7 +19,6 @@ import java.util.List;
  */
 class Files {
 
-
     static void makeDir(File directory) throws IOException {
         if (directory.exists()) {
             if (!directory.isDirectory()) {
@@ -46,13 +45,12 @@ class Files {
     static void setLastModifiedNow(File file) throws IOException {
         if (file.exists()) {
             long now = System.currentTimeMillis();
-            KLog.i("====修改文件的最后修改时间为当前时间:" + now);
             boolean modified = file.setLastModified(now); // on some devices (e.g. Nexus 5) doesn't work
             if (!modified) {
                 modify(file);
                 if (file.lastModified() < now) {
                     // NOTE: apparently this is a known issue (see: http://stackoverflow.com/questions/6633748/file-lastmodified-is-never-what-was-set-with-file-setlastmodified)
-                    KLog.i("Last modified date {} is not set for file {}", new Date(file.lastModified()), file.getAbsolutePath());
+                    KLog.w("Last modified date {} is not set for file {}", new Date(file.lastModified()), file.getAbsolutePath());
                 }
             }
         }

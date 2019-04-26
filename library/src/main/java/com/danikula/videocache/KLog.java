@@ -17,12 +17,11 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 /**
- * Created by lsq on 1/30/2018.11:07 AM
- *
- * @author lsq
- * @describe 添加描述
+ * Email: 690797861@qq.com
+ * Author: Infinite
+ * Date: 2019-04-26 - 15:11
+ * Description: 类的描述信息
  */
-
 public class KLog {
 
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");

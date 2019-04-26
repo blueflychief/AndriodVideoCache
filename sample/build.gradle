@@ -1,38 +1,22 @@
-//buildscript {
-//    repositories {
-//        jcenter()
-//    }
-//    dependencies {
-//        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
-//    }
-//}
-//
-//repositories {
-//    maven { url 'https://github.com/dahlgren/vpi-aar/raw/master' }
-//}
-
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    compileSdkVersion Integer.parseInt(compileSdkVers)
+    buildToolsVersion buildToolsVers
+    compileOptions.encoding = "UTF-8"
 
     defaultConfig {
         applicationId 'com.danikula.videocache.sample'
-        minSdkVersion 15
-        targetSdkVersion 26
+        minSdkVersion minSdkVers
+        targetSdkVersion Integer.parseInt(targetSdkVers)
         versionCode 1
         versionName '1.0'
     }
 }
 
-
-
 dependencies {
-    implementation 'com.android.support:appcompat-v7:26.1.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile project(':library')
-    compile 'com.android.support:support-v4:26.0.2'
-//    compile 'com.danikula:videocache:2.7.0'
-    compile 'com.github.JakeWharton:ViewPagerIndicator:2.4.1'
+    implementation "com.android.support:support-v4:$supportVers"
+//    implementation 'com.danikula:videocache:2.7.1'
+    implementation 'com.github.JakeWharton:ViewPagerIndicator:2.4.1'
+    implementation project(path: ':library')
 }

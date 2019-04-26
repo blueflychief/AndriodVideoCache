@@ -25,12 +25,6 @@ public class ProxyCacheUtils {
     static final int DEFAULT_BUFFER_SIZE = 8 * 1024;
     static final int MAX_ARRAY_PREVIEW = 16;
 
-    /**
-     * 从url获取扩展名
-     *
-     * @param url
-     * @return
-     */
     static String getSupposablyMime(String url) {
         MimeTypeMap mimes = MimeTypeMap.getSingleton();
         String extension = MimeTypeMap.getFileExtensionFromUrl(url);
@@ -74,7 +68,7 @@ public class ProxyCacheUtils {
             try {
                 closeable.close();
             } catch (IOException e) {
-                KLog.i("Error closing resource", e);
+                KLog.e("Error closing resource", e);
             }
         }
     }

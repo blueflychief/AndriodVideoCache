@@ -14,6 +14,7 @@ public enum Video {
     ORANGE_9("http://baobab.kaiyanapp.com/api/v1/playUrl?vid=77827&editionType=default&source=aliyun"),
     ORANGE_10("http://baobab.kaiyanapp.com/api/v1/playUrl?vid=72941&editionType=default&source=aliyun"),
     ORANGE_11("http://baobab.kaiyanapp.com/api/v1/playUrl?vid=1392&editionType=default&source=aliyun");
+
 //    ORANGE_1(Config.ROOT + "orange1.mp4"),
 //    ORANGE_2(Config.ROOT + "orange2.mp4"),
 //    ORANGE_3(Config.ROOT + "orange3.mp4"),

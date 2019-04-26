@@ -1,3 +1,6 @@
+See author source repository
+https://github.com/danikula/AndroidVideoCache
+
 ## Video cache support for Android
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-AndroidVideoCache-brightgreen.svg?style=flat)](http://android-arsenal.com/details/1/1751) [![Build Status](https://api.travis-ci.org/danikula/AndroidVideoCache.svg?branch=master)](https://travis-ci.org/danikula/AndroidVideoCache/) [ ![Download](https://api.bintray.com/packages/alexeydanilov/maven/videocache/images/download.svg) ](https://bintray.com/alexeydanilov/maven/videocache/_latestVersion)
 
@@ -36,7 +39,7 @@ Note `AndroidVideoCache` works only with **direct urls** to media file, it  [**d
 Just add dependency (`AndroidVideoCache` is available in jcenter):
 ```
 dependencies {
-    compile 'com.danikula:videocache:2.7.0'
+    compile 'com.danikula:videocache:2.7.1'
 }
 ```
 

@@ -24,7 +24,6 @@ public abstract class LruDiskUsage implements DiskUsage {
     }
 
     private void touchInBackground(File file) throws IOException {
-        KLog.i("====touchInBackground");
         Files.setLastModifiedNow(file);
         List<File> files = Files.getLruListFiles(file.getParentFile());
         trim(files);
@@ -35,7 +34,6 @@ public abstract class LruDiskUsage implements DiskUsage {
     private void trim(List<File> files) {
         long totalSize = countTotalSize(files);
         int totalCount = files.size();
-        KLog.i("======准备修剪文件夹中的文件");
         for (File file : files) {
             boolean accepted = accept(file, totalSize, totalCount);
             if (!accepted) {
@@ -46,7 +44,7 @@ public abstract class LruDiskUsage implements DiskUsage {
                     totalSize -= fileSize;
                     KLog.i("Cache file " + file + " is deleted because it exceeds cache limit");
                 } else {
-                    KLog.i("Error deleting file " + file + " for trimming cache");
+                    KLog.e("Error deleting file " + file + " for trimming cache");
                 }
             }
         }

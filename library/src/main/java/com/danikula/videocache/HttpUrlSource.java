@@ -37,20 +37,10 @@ public class HttpUrlSource implements Source {
     private HttpURLConnection connection;
     private InputStream inputStream;
 
-    /**
-     * 这个构造用于ping测试
-     *
-     * @param url
-     */
     public HttpUrlSource(String url) {
         this(url, SourceInfoStorageFactory.newEmptySourceInfoStorage());
     }
 
-    /**
-     * 这个构造用于ping测试
-     *
-     * @param url
-     */
     public HttpUrlSource(String url, SourceInfoStorage sourceInfoStorage) {
         this(url, sourceInfoStorage, new EmptyHeadersInjector());
     }
@@ -58,7 +48,7 @@ public class HttpUrlSource implements Source {
     public HttpUrlSource(String url, SourceInfoStorage sourceInfoStorage, HeaderInjector headerInjector) {
         this.sourceInfoStorage = checkNotNull(sourceInfoStorage);
         this.headerInjector = checkNotNull(headerInjector);
-        SourceInfo sourceInfo = sourceInfoStorage.get(url);//如果是Ping请求，返回的是null
+        SourceInfo sourceInfo = sourceInfoStorage.get(url);
         this.sourceInfo = sourceInfo != null ? sourceInfo :
                 new SourceInfo(url, Integer.MIN_VALUE, ProxyCacheUtils.getSupposablyMime(url));
     }
@@ -80,7 +70,6 @@ public class HttpUrlSource implements Source {
     @Override
     public void open(long offset) throws ProxyCacheException {
         try {
-            KLog.i("======open ,offset:" + offset);
             connection = openConnection(offset, -1);
             String mime = connection.getContentType();
             inputStream = new BufferedInputStream(connection.getInputStream(), DEFAULT_BUFFER_SIZE);
@@ -115,7 +104,7 @@ public class HttpUrlSource implements Source {
                         "https://github.com/danikula/AndroidVideoCache/issues.";
                 throw new RuntimeException(message, e);
             } catch (ArrayIndexOutOfBoundsException e) {
-                KLog.i("Error closing connection correctly. Should happen only on Android L. " +
+                KLog.e("Error closing connection correctly. Should happen only on Android L. " +
                         "If anybody know how to fix it, please visit https://github.com/danikula/AndroidVideoCache/issues/88. " +
                         "Until good solution is not know, just ignore this issue :(", e);
             }
@@ -130,7 +119,6 @@ public class HttpUrlSource implements Source {
         try {
             return inputStream.read(buffer, 0, buffer.length);
         } catch (InterruptedIOException e) {
-            KLog.i("=======数据流断开，可能是播放器停止播放");
             throw new InterruptedProxyCacheException("Reading source " + sourceInfo.url + " is interrupted", e);
         } catch (IOException e) {
             throw new ProxyCacheException("Error reading data from " + sourceInfo.url, e);
@@ -138,7 +126,7 @@ public class HttpUrlSource implements Source {
     }
 
     private void fetchContentInfo() throws ProxyCacheException {
-        KLog.i("获取远程服务器文件信息：" + sourceInfo.url);
+        KLog.d("Read content info from " + sourceInfo.url);
         HttpURLConnection urlConnection = null;
         InputStream inputStream = null;
         try {
@@ -148,9 +136,9 @@ public class HttpUrlSource implements Source {
             inputStream = urlConnection.getInputStream();
             this.sourceInfo = new SourceInfo(sourceInfo.url, length, mime);
             this.sourceInfoStorage.put(sourceInfo.url, sourceInfo);
-            KLog.i("Source info fetched: " + sourceInfo);
+            KLog.d("Source info fetched: " + sourceInfo);
         } catch (IOException e) {
-            KLog.i("Error fetching info from " + sourceInfo.url, e);
+            KLog.e("Error fetching info from " + sourceInfo.url, e);
         } finally {
             ProxyCacheUtils.close(inputStream);
             if (urlConnection != null) {
@@ -165,7 +153,7 @@ public class HttpUrlSource implements Source {
         int redirectCount = 0;
         String url = this.sourceInfo.url;
         do {
-            KLog.i("打开服务器文件链接 " + (offset > 0 ? " with offset " + offset : "") + " to " + url);
+            KLog.d("Open connection " + (offset > 0 ? " with offset " + offset : "") + " to " + url);
             connection = (HttpURLConnection) new URL(url).openConnection();
             injectCustomHeaders(connection, url);
             if (offset > 0) {
@@ -193,7 +181,6 @@ public class HttpUrlSource implements Source {
         Map<String, String> extraHeaders = headerInjector.addHeaders(url);
         for (Map.Entry<String, String> header : extraHeaders.entrySet()) {
             connection.setRequestProperty(header.getKey(), header.getValue());
-            KLog.i("====injectCustomHeaders,key:" + header.getKey() + " ,value:" + header.getValue());
         }
     }
 

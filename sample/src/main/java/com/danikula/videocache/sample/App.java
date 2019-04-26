@@ -4,21 +4,14 @@ import android.app.Application;
 import android.content.Context;
 
 import com.danikula.videocache.HttpProxyCacheServer;
-import com.danikula.videocache.KLog;
 
 /**
  * @author Alexey Danilov (danikula@gmail.com).
  */
+@Deprecated
 public class App extends Application {
 
     private HttpProxyCacheServer proxy;
-
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        KLog.init(BuildConfig.DEBUG, "VideoCache");
-    }
 
     public static HttpProxyCacheServer getProxy(Context context) {
         App app = (App) context.getApplicationContext();

@@ -1,61 +1,62 @@
-repositories {
-    maven { url 'https://dl.bintray.com/alexeydanilov/maven' }
-}
+//repositories {
+//    maven { url 'https://dl.bintray.com/alexeydanilov/maven' }
+//}
 
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion '26.0.2'
+    compileSdkVersion Integer.parseInt(compileSdkVers)
+    buildToolsVersion buildToolsVers
+    compileOptions.encoding = "UTF-8"
 
     defaultConfig {
         applicationId 'com.danikula.proxycache.test'
-        minSdkVersion 16
-        targetSdkVersion 23
+        minSdkVersion minSdkVers
+        targetSdkVersion Integer.parseInt(targetSdkVers)
         versionCode 1
         versionName '0.1'
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility sourceCompatibilityVersion
+        targetCompatibility appTargetCompatibilityVersion
     }
 }
-
-// temporary workaround for Robolectric issue https://github.com/robolectric/robolectric/issues/2647
-android.applicationVariants.all { variant ->
-    def productFlavor = variant.productFlavors[0] != null ? "${variant.productFlavors[0].name.capitalize()}" : ""
-    def buildType = "${variant.buildType.name.capitalize()}"
-    tasks["compile${productFlavor}${buildType}UnitTestSources"].dependsOn(tasks["merge${productFlavor}${buildType}Assets"])
-}
-
-// display test progress http://stackoverflow.com/a/36130467/999458
-tasks.withType(Test) {
-    testLogging {
-        // set options for log level LIFECYCLE
-        events "passed", "skipped", "failed", "standardOut"
-        showExceptions true
-        exceptionFormat "full"
-        showCauses true
-        showStackTraces true
-
-        // set options for log level DEBUG and INFO
-        debug {
-            events "started", "passed", "skipped", "failed", "standardOut", "standardError"
-            exceptionFormat "full"
-        }
-        info.events = debug.events
-        info.exceptionFormat = debug.exceptionFormat
-
-        afterSuite { desc, result ->
-            if (!desc.parent) { // will match the outermost suite
-                def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
-                def startItem = '|  ', endItem = '  |'
-                def repeatLength = startItem.length() + output.length() + endItem.length()
-                println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
-            }
-        }
-    }
-}
+//
+//// temporary workaround for Robolectric issue https://github.com/robolectric/robolectric/issues/2647
+//android.applicationVariants.all { variant ->
+//    def productFlavor = variant.productFlavors[0] != null ? "${variant.productFlavors[0].name.capitalize()}" : ""
+//    def buildType = "${variant.buildType.name.capitalize()}"
+//    tasks["compile${productFlavor}${buildType}UnitTestSources"].dependsOn(tasks["merge${productFlavor}${buildType}Assets"])
+//}
+//
+//// display test progress http://stackoverflow.com/a/36130467/999458
+//tasks.withType(Test) {
+//    testLogging {
+//        // set options for log level LIFECYCLE
+//        events "passed", "skipped", "failed", "standardOut"
+//        showExceptions true
+//        exceptionFormat "full"
+//        showCauses true
+//        showStackTraces true
+//
+//        // set options for log level DEBUG and INFO
+//        debug {
+//            events "started", "passed", "skipped", "failed", "standardOut", "standardError"
+//            exceptionFormat "full"
+//        }
+//        info.events = debug.events
+//        info.exceptionFormat = debug.exceptionFormat
+//
+//        afterSuite { desc, result ->
+//            if (!desc.parent) { // will match the outermost suite
+//                def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+//                def startItem = '|  ', endItem = '  |'
+//                def repeatLength = startItem.length() + output.length() + endItem.length()
+//                println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
+//            }
+//        }
+//    }
+//}
 
 dependencies {
     compile project(':library')

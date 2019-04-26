@@ -31,7 +31,6 @@ class Pinger {
 
     private static final String PING_REQUEST = "ping";
     private static final String PING_RESPONSE = "ping ok";
-    private static final String HTTP_RESPONSE = "HTTP/1.1 200 OK\n\n";
 
     private final ExecutorService pingExecutor = Executors.newSingleThreadExecutor();
     private final String host;
@@ -45,7 +44,7 @@ class Pinger {
     boolean ping(int maxAttempts, int startTimeout) {
         checkArgument(maxAttempts >= 1);
         checkArgument(startTimeout > 0);
-        KLog.i("====开始Ping测试，查看代理服务是否存活，maxAttempts：" + maxAttempts + " ,startTimeout:" + startTimeout);
+
         int timeout = startTimeout;
         int attempts = 0;
         while (attempts < maxAttempts) {
@@ -56,9 +55,9 @@ class Pinger {
                     return true;
                 }
             } catch (TimeoutException e) {
-                KLog.i("Error pinging server (attempt: " + attempts + ", timeout: " + timeout + "). ");
+                KLog.w("Error pinging server (attempt: " + attempts + ", timeout: " + timeout + "). ");
             } catch (InterruptedException | ExecutionException e) {
-                KLog.i("Error pinging server due to unexpected error", e);
+                KLog.e("Error pinging server due to unexpected error", e);
             }
             attempts++;
             timeout *= 2;
@@ -67,7 +66,7 @@ class Pinger {
                         "If you see this message, please, report at https://github.com/danikula/AndroidVideoCache/issues/134. " +
                         "Default proxies are: %s"
                 , attempts, timeout / 2, getDefaultProxies());
-        KLog.i(error, new ProxyCacheException(error));
+        KLog.e(error, new ProxyCacheException(error));
         return false;
     }
 
@@ -85,17 +84,14 @@ class Pinger {
     }
 
     void responseToPing(Socket socket) throws IOException {
-        //ping请求的回应
         OutputStream out = socket.getOutputStream();
-        out.write(HTTP_RESPONSE.getBytes());
+        out.write("HTTP/1.1 200 OK\n\n".getBytes());
         out.write(PING_RESPONSE.getBytes());
-        KLog.i("====返回ping响应");
     }
 
     private boolean pingServer() throws ProxyCacheException {
         String pingUrl = getPingUrl();
         HttpUrlSource source = new HttpUrlSource(pingUrl);
-        KLog.i("====pingServer==HttpUrlSource:\n" + source.toString());
         try {
             byte[] expectedResponse = PING_RESPONSE.getBytes();
             source.open(0);
@@ -105,7 +101,7 @@ class Pinger {
             KLog.i("Ping response: `" + new String(response) + "`, pinged? " + pingOk);
             return pingOk;
         } catch (ProxyCacheException e) {
-            KLog.i("Error reading ping response", e);
+            KLog.e("Error reading ping response", e);
             return false;
         } finally {
             source.close();
